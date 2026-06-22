@@ -1,19 +1,46 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Mail, MapPin, Send, Loader2 } from "lucide-react";
+import { Mail, MapPin, Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { personalInfo } from "../data/portfolioData";
 
 const INITIAL_FORM_STATE = { name: "", email: "", message: "" };
+
+// Simple email regex for validation
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const Contact = ({ showToast }) => {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [touched, setTouched] = useState({ name: false, email: false, message: false });
+
+  // Validation state
+  const validation = useMemo(() => ({
+    name: formData.name.trim().length >= 2,
+    email: EMAIL_REGEX.test(formData.email),
+    message: formData.message.trim().length >= 10,
+  }), [formData]);
+
+  const isFormValid = validation.name && validation.email && validation.message;
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
+
+  const handleBlur = useCallback((e) => {
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+  }, []);
+
+  const getFieldClasses = useCallback((fieldName) => {
+    const base = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm";
+    if (!touched[fieldName]) return base;
+    if (validation[fieldName]) {
+      return `${base} border-green-400 dark:border-green-500 focus:ring-green-500`;
+    }
+    return `${base} border-red-400 dark:border-red-500 focus:ring-red-500`;
+  }, [touched, validation]);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -164,16 +191,31 @@ const Contact = ({ showToast }) => {
                 >
                   Your Name
                 </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
-                  placeholder="John Doe"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    className={getFieldClasses("name")}
+                    placeholder="John Doe"
+                  />
+                  {touched.name && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {validation.name ? (
+                        <CheckCircle size={16} className="text-green-500 animate-checkmark" />
+                      ) : (
+                        <AlertCircle size={16} className="text-red-500" />
+                      )}
+                    </span>
+                  )}
+                </div>
+                {touched.name && !validation.name && (
+                  <p className="text-xs text-red-500 mt-1">Name must be at least 2 characters</p>
+                )}
               </div>
               <div>
                 <label
@@ -182,16 +224,31 @@ const Contact = ({ showToast }) => {
                 >
                   Your Email
                 </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
-                  placeholder="john@example.com"
-                />
+                <div className="relative">
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    className={getFieldClasses("email")}
+                    placeholder="john@example.com"
+                  />
+                  {touched.email && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {validation.email ? (
+                        <CheckCircle size={16} className="text-green-500 animate-checkmark" />
+                      ) : (
+                        <AlertCircle size={16} className="text-red-500" />
+                      )}
+                    </span>
+                  )}
+                </div>
+                {touched.email && !validation.email && (
+                  <p className="text-xs text-red-500 mt-1">Please enter a valid email address</p>
+                )}
               </div>
               <div>
                 <label
@@ -199,26 +256,51 @@ const Contact = ({ showToast }) => {
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
                 >
                   Message
+                  <span className="text-xs text-slate-400 dark:text-slate-500 font-normal ml-2">
+                    ({formData.message.length}/500)
+                  </span>
                 </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={5}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm resize-none"
-                  placeholder="Tell me about your opportunity..."
-                />
+                <div className="relative">
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    rows={5}
+                    maxLength={500}
+                    className={getFieldClasses("message") + " resize-none"}
+                    placeholder="Tell me about your opportunity..."
+                  />
+                  {touched.message && (
+                    <span className="absolute right-3 top-3">
+                      {validation.message ? (
+                        <CheckCircle size={16} className="text-green-500 animate-checkmark" />
+                      ) : (
+                        <AlertCircle size={16} className="text-red-500" />
+                      )}
+                    </span>
+                  )}
+                </div>
+                {touched.message && !validation.message && (
+                  <p className="text-xs text-red-500 mt-1">Message must be at least 10 characters</p>
+                )}
               </div>
               <button
                 type="submit"
-                disabled={sending}
+                disabled={sending || (touched.name && !isFormValid)}
                 className="w-full px-6 py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 aria-label="Send message"
               >
-                {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                {sending ? "Sending..." : submitted ? "Message Sent!" : "Send Message"}
+                {sending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : submitted ? (
+                  <CheckCircle size={16} className="animate-checkmark" />
+                ) : (
+                  <Send size={16} />
+                )}
+                {sending ? "Sending..." : submitted ? "Sent!" : "Send Message"}
               </button>
             </form>
           </motion.div>

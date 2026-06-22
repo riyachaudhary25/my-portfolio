@@ -1,5 +1,14 @@
 import { motion } from "framer-motion";
+import { Code2, Server, Shield, Database, Cloud, Palette } from "lucide-react";
 import { skills } from "../data/portfolioData";
+
+const categoryIcons = {
+  "Languages": Code2,
+  "Web Development": Palette,
+  "Database & Analytics": Database,
+  "Cyber Security": Shield,
+  "CS Core": Server,
+};
 
 const SkillBar = ({ name, level }) => {
   return (
@@ -26,6 +35,7 @@ const SkillBar = ({ name, level }) => {
 };
 
 const SkillCard = ({ category, items }) => {
+  const Icon = categoryIcons[category] || Code2;
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -34,7 +44,8 @@ const SkillCard = ({ category, items }) => {
       transition={{ duration: 0.5 }}
       className="p-6 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:shadow-lg hover:shadow-indigo-500/5 dark:hover:shadow-indigo-500/10 transition-all duration-300"
     >
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-5 pb-3 border-b border-slate-100 dark:border-slate-700">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-5 pb-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+        <Icon className="w-5 h-5 text-indigo-500" />
         {category}
       </h3>
       {items.map((skill, index) => (

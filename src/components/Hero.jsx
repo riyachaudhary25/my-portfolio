@@ -212,10 +212,10 @@ const Hero = () => {
                 </div>
               </div>
               {/* Floating badges */}
-              <div className="absolute -top-2 -right-2 w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg animate-bounce">
+              <div className="absolute -top-2 -right-2 w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg animate-float">
                 Coder
               </div>
-              <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg animate-bounce" style={{ animationDelay: '0.5s' }}>
+              <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg animate-float-delayed">
                 MCA
               </div>
             </div>
