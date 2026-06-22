@@ -1,27 +1,38 @@
 import { Heart } from "lucide-react";
-import { personalInfo } from "../data/portfolioData";
+import { personalInfo, navLinks } from "../data/portfolioData";
+import { scrollToSection } from "../utils/scrollUtils";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
+  const handleNavClick = (href) => {
+    scrollToSection(href);
+  };
+
   return (
     <footer
-      className="py-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800"
+      className="py-10 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800"
       role="contentinfo"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="text-lg font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
             {personalInfo.name}
           </div>
 
-          {/* Copyright */}
-          <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
-            &copy; {currentYear} Made with
-            <Heart size={14} className="text-red-500 fill-red-500" />
-            by {personalInfo.name}
-          </p>
+          {/* Quick Navigation */}
+          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2" aria-label="Footer navigation">
+            {navLinks.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => handleNavClick(link.href)}
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+              >
+                {link.name}
+              </button>
+            ))}
+          </nav>
 
           {/* Social Links */}
           <div className="flex gap-3">
@@ -57,6 +68,15 @@ const Footer = () => {
               </svg>
             </a>
           </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
+            &copy; {currentYear} Made with
+            <Heart size={14} className="text-red-500 fill-red-500" />
+            by {personalInfo.name}
+          </p>
         </div>
       </div>
     </footer>

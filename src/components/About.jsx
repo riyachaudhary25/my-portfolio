@@ -1,25 +1,84 @@
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { GraduationCap, Award, BookOpen } from "lucide-react";
+import { GraduationCap, Award, BookOpen, Briefcase } from "lucide-react";
 import { personalInfo } from "../data/portfolioData";
+
+// Custom hook for count-up animation
+const useCountUp = (target, duration = 2000, trigger = false) => {
+  const [count, setCount] = useState(0);
+  const startRef = useRef(null);
+
+  useEffect(() => {
+    if (!trigger) return;
+    startRef.current = null;
+    const step = (timestamp) => {
+      if (!startRef.current) startRef.current = timestamp;
+      const progress = Math.min((timestamp - startRef.current) / duration, 1);
+      setCount(Math.floor(progress * target));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
+  }, [target, duration, trigger]);
+
+  return count;
+};
+
+const AnimatedStat = ({ label, value, icon: Icon, suffix = "" }) => {
+  const [ref, inView] = useInView({ threshold: 0.3 });
+  const count = useCountUp(parseInt(value) || 0, 2000, inView);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.4 }}
+      className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors"
+    >
+      <Icon className="w-5 h-5 text-indigo-500 mb-2" />
+      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+        {count}{suffix}
+        {!inView && <span className="opacity-0">{value}</span>}
+      </p>
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
+    </motion.div>
+  );
+};
+
+// Simple useInView polyfill (works without intersection observer dependency)
+function useInView({ threshold = 0.1 } = {}) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, inView];
+}
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-100px" },
   transition: { duration: 0.6 },
-};
-
-const staggerContainer = {
-  initial: { opacity: 0 },
-  whileInView: { opacity: 1 },
-  viewport: { once: true, margin: "-100px" },
-  transition: { staggerChildren: 0.15 },
-};
-
-const statVariants = {
-  initial: { opacity: 0, y: 20 },
-  whileInView: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 },
 };
 
 const About = () => {
@@ -58,32 +117,13 @@ const About = () => {
               ))}
             </div>
 
-            {/* Quick Stats */}
-            <motion.div
-              {...staggerContainer}
-              className="grid grid-cols-2 gap-4 mt-8"
-            >
-              {[
-                { label: "CGPA", value: "8.06", icon: BookOpen },
-                { label: "Certifications", value: "4+", icon: Award },
-                { label: "Projects", value: "3+", icon: GraduationCap },
-                { label: "Experience", value: "Intern", icon: Award },
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  {...statVariants}
-                  className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors"
-                >
-                  <stat.icon className="w-5 h-5 text-indigo-500 mb-2" />
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {stat.label}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
+            {/* Quick Stats with animated counters */}
+            <div className="grid grid-cols-2 gap-4 mt-8">
+              <AnimatedStat label="CGPA" value="8.06" icon={BookOpen} />
+              <AnimatedStat label="Certifications" value="4" icon={Award} suffix="+" />
+              <AnimatedStat label="Projects" value="3" icon={Briefcase} suffix="+" />
+              <AnimatedStat label="Experience" value="1" icon={Award} suffix="+ Year" />
+            </div>
           </motion.div>
 
           {/* Education & Certifications */}
